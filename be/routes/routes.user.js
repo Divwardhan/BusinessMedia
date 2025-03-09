@@ -6,9 +6,20 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const router = express.Router();
-const SECRET_KEY = "Adityakurani"
+const SECRET_KEY = process.env.SECRET_KEY;
 
-// Update User
+// ✅ Test route
+router.get("/test", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT NOW()");
+    res.json({ status: "Connected", time: result.rows[0].now });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ status: "Failed to connect", error: err.message });
+  }
+});
+
+// ✅ Update User
 router.post("/update/:id", async (req, res) => {
   const id = parseInt(req.params.id);
   const { name, email, password } = req.body;
@@ -33,8 +44,8 @@ router.post("/update/:id", async (req, res) => {
   }
 });
 
-// Delete User
-router.post("/delete/:id", async (req, res) => {
+// ✅ Delete User
+router.delete("/delete/:id", async (req, res) => {
   const id = parseInt(req.params.id);
 
   try {
@@ -52,7 +63,7 @@ router.post("/delete/:id", async (req, res) => {
   }
 });
 
-// Search User by Name
+// ✅ Search User by Name
 router.post("/search", async (req, res) => {
   const { name } = req.body;
 
@@ -61,21 +72,21 @@ router.post("/search", async (req, res) => {
   }
 
   try {
-    const query = "SELECT name FROM users WHERE name LIKE $1";
-    const result = await pool.query(query, [name]);
+    const query = "SELECT * FROM users WHERE name ILIKE $1";
+    const result = await pool.query(query, [`%${name}%`]); // Partial match
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    res.json({ message: "User found", name: result.rows[0].name });
+    res.json({ users: result.rows });
   } catch (err) {
     console.error("Error finding user:", err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
-// Get All Users
+// ✅ Get All Users
 router.get("/all-users", async (req, res) => {
   try {
     const query = "SELECT * FROM users";
@@ -88,13 +99,12 @@ router.get("/all-users", async (req, res) => {
   }
 });
 
-// Get Profile (Requires Authentication)
+// ✅ Get Profile (Requires Authentication)
 router.get("/profile", async (req, res) => {
   try {
     const token = req.cookies?.token;
-
     if (!token) {
-      return res.status(401).json({ error: "No token provided" });
+      return res.status(401).json({ error: "Unauthorized - No token provided" });
     }
 
     const decoded = jwt.verify(token, SECRET_KEY);
@@ -110,12 +120,12 @@ router.get("/profile", async (req, res) => {
     res.json({ user: result.rows[0] });
   } catch (err) {
     console.error("Error fetching profile:", err);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(401).json({ error: "Invalid token or unauthorized" });
   }
 });
 
-// Logout User
-router.get("/logout", (req, res) => {
+// ✅ Logout User
+router.post("/logout", (req, res) => {
   res.clearCookie("token").json({ message: "User logged out successfully" });
 });
 
