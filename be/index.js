@@ -1,42 +1,46 @@
-import express, { query } from "express";
+import express from "express";
 import dotenv from "dotenv";
 import pool from "./db/database_connection.js";
 import authRoutes from "./routes/authentication.js";
+import userRoutes from './routes/user.js';
+import googleAuthRoutes from './routes/auth.google.js';
 import { fileURLToPath } from "url";
-import jwt from 'jsonwebtoken'
-import cookieParser from 'cookie-parser'
 import path from "path";
-import UserRoutes from './routes/user.js'
-import GoogleAuthRoutes from './routes/auth.google.js'
+import cookieParser from "cookie-parser";
 import session from "express-session";
+import passport from "passport";
 
 dotenv.config();
 
 const app = express();
 
-app.use(cookieParser())
+const PORT = process.env.PORT || 5000;
+const SECRET_KEY = process.env.SECRET_KEY || "Adityakurani";
 
-const PORT = process.env.PORT || 3000;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-const SECRET_KEY="Adityakurani"
+app.use(cookieParser());
+
 app.use(
   session({
-    secret: process.env.SECRET_KEY || "Adityakurani",
+    secret: SECRET_KEY,
     resave: false,
     saveUninitialized: true,
   })
 );
-import passport from "passport";
+
 app.use(passport.initialize());
 app.use(passport.session());
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+
+// ✅ Serve the index.html file
 app.get("/", (req, res) => {
-  res.sendFile(path.resolve(__dirname,"index.html"))
+  res.sendFile(path.resolve(__dirname, "index.html"));
 });
 
+// ✅ Test database connection
 app.get("/test-db", async (req, res) => {
   try {
     const result = await pool.query("SELECT NOW()");
@@ -47,24 +51,26 @@ app.get("/test-db", async (req, res) => {
   }
 });
 
-app.use("/auth/google",GoogleAuthRoutes)
-app.use('/user',UserRoutes)
-app.use("/auth", authRoutes); 
-app.get("/google/profile", (req, res) => {
-  if (!req.user) {
-    return res.send("Unauthorized");
-  }
+// ✅ Use routes
+app.use("/auth/google", googleAuthRoutes);
+app.use("/user", userRoutes);
+app.use("/auth", authRoutes);
 
-  const fullName = req.user.displayName; 
+// ✅ Google profile route
+app.get("/google/profile", (req, res) => {
+  if (!req.user) return res.send("Unauthorized");
+
+  const fullName = req.user.displayName;
   const profilePic = req.user._json.picture;
 
   res.send(`
-    <h1>Welcome, ${fullName} !</h1>
-    <h2>Email ${req.user._json.email} </h2>
-    <img src="${profilePic}" alt="Profile Picture">
+    <h1>Welcome, ${fullName}!</h1>
+    <h2>Email: ${req.user._json.email}</h2>
+    <img src="${profilePic}" alt="Profile Picture" />
   `);
 });
 
+// ✅ Start server
 app.listen(PORT, () => {
-  console.log(`Server started at http://localhost:${PORT}`);
+  console.log(`🚀 Server started at http://localhost:${PORT}`);
 });
