@@ -15,9 +15,9 @@ router.get("/login", (req, res) => {
 });
 
 router.post("/register", async (req, res) => {
-  const { name, email, password } = req.body;
+  const { username, email, password } = req.body;
 
-  if (!name || !email || !password) {
+  if (!username || !email || !password) {
     return res.status(400).json({ error: "All fields are required" });
   }
 
@@ -29,7 +29,7 @@ router.post("/register", async (req, res) => {
     }
 
     const query = `INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *;`;
-    const values = [name, email, password];
+    const values = [username, email, password];
 
     const result = await pool.query(query, values);
     res.status(201).json({ message: "User created successfully", user: result.rows[0] });
@@ -41,15 +41,15 @@ router.post("/register", async (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
 
-  if (!username || !password) {
+  if (!email || !password) {
     return res.status(400).json({ error: "Username and password are required" });
   }
 
   try {
-    const query = "SELECT * FROM users WHERE name = $1";
-    const result = await pool.query(query, [username]);
+    const query = "SELECT * FROM users WHERE email = $1";
+    const result = await pool.query(query, [email]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "User not found" });

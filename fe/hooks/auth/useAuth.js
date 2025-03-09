@@ -11,7 +11,7 @@ const useAuth = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.post("https://your-backend.com/api/login", {
+      const response = await axios.post("http://localhost:3000/auth/login", {
         email,
         password,
       });
@@ -23,6 +23,7 @@ const useAuth = () => {
       return userData; // Can be used for additional logic
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
+      console.log(err)
       return null;
     } finally {
       setLoading(false);
@@ -33,7 +34,7 @@ const useAuth = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.post("https://your-backend.com/api/signup", {
+      const response = await axios.post("http://localhost:3000/auth/register", {
         username,
         email,
         password,
@@ -46,6 +47,7 @@ const useAuth = () => {
       return userData;
     } catch (err) {
       setError(err.response?.data?.message || "Signup failed");
+      console.log(err)
       return null;
     } finally {
       setLoading(false);

@@ -1,18 +1,25 @@
 import express, { query } from "express";
 import dotenv from "dotenv";
 import pool from "./db/database_connection.js";
-import authRoutes from "./routes/authentication.js";
+import authRoutes from "./routes/routes.auth.js";
 import { fileURLToPath } from "url";
-import jwt from 'jsonwebtoken'
 import cookieParser from 'cookie-parser'
 import path from "path";
-import UserRoutes from './routes/user.js'
+import UserRoutes from './routes/routes.user.js'
 import GoogleAuthRoutes from './routes/auth.google.js'
 import session from "express-session";
+import passport from "passport";
+import cors from 'cors'
 
 dotenv.config();
 
 const app = express();
+const corsOptions = {
+  origin : 'http://localhost:5173',
+  optionsSuccessStatus: 200
+}
+app.use(cors(corsOptions)); 
+
 
 app.use(cookieParser())
 
@@ -28,11 +35,12 @@ app.use(
     saveUninitialized: true,
   })
 );
-import passport from "passport";
 app.use(passport.initialize());
 app.use(passport.session());
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+
 app.get("/", (req, res) => {
   res.sendFile(path.resolve(__dirname,"index.html"))
 });
