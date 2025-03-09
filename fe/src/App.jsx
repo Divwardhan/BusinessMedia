@@ -1,14 +1,14 @@
 import { BrowserRouter as Router , Routes , Route } from 'react-router-dom';
 import Authentication from './Components/skeleton/skeleton.auth';
 import './App.css';
-
-
+import Profile from './Components/subElements/auth/ProfilesubE/Profile';
 
 function App() {
   return (
     <>
     <Router>
       <Routes>
+      <Route path="/organization" element={<Profile />} />
       <Route path= "/homepage" element={<></>}/>
       <Route path= "/auth" element={<><Authentication/></>}/>
       <Route path= "/broadcasting_to_own_organisation" element={<></>}/>
