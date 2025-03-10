@@ -1,32 +1,35 @@
-import express, { query } from "express";
+import express from "express";
 import dotenv from "dotenv";
 import pool from "./db/database_connection.js";
 import authRoutes from "./routes/routes.auth.js";
 import { fileURLToPath } from "url";
 import path from "path";
-
 import cookieParser from "cookie-parser";
 import UserRoutes from "./routes/routes.user.js";
 import GoogleAuthRoutes from "./routes/auth.google.js";
 import session from "express-session";
-import postRoutes from "./routes/company/routes.posts.js";
+import companyRoutes from "./routes/company/routes.posts.js"; // Fixed import
 import passport from "passport";
 import cors from "cors";
 import companyInfoRoutes from "./routes/company/routes.info.js";
 
-dotenv.config({ path: path.resolve(__dirname, "../.env") });
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.join(__dirname, "../.env") }); // Fixed dotenv path
+
 const app = express();
 const PORT = process.env.PORT || 3000;
+
 const corsOptions = {
   origin: "http://localhost:5173",
   optionsSuccessStatus: 200,
 };
 app.use(cors(corsOptions));
-
 app.use(cookieParser());
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 app.use(
   session({
     secret: process.env.JWT_SECRET_KEY || "Adityakurani",
@@ -34,14 +37,12 @@ app.use(
     saveUninitialized: true,
   })
 );
+
 app.use(passport.initialize());
 app.use(passport.session());
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 app.get("/", (req, res) => {
   res.sendFile(path.resolve(__dirname, "index.html"));
-  console.log(process.env.JWT_SECRET);
 });
 
 app.get("/test-db", async (req, res) => {
@@ -54,25 +55,27 @@ app.get("/test-db", async (req, res) => {
   }
 });
 
-app.use("/auth/google",GoogleAuthRoutes)
-app.use('/user',UserRoutes);
-app.use('/company',companyRoutes)
-app.use("/auth", authRoutes); 
+app.use("/auth/google", GoogleAuthRoutes);
+app.use("/user", UserRoutes);
+app.use("/company", companyRoutes); // Fixed route assignment
+app.use("/company/info", companyInfoRoutes);
+app.use("/auth", authRoutes);
+
 app.get("/google/profile", (req, res) => {
   if (!req.user) {
-    return res.send("Unauthorized");
+    return res.status(401).send("Unauthorized");
   }
 
-  const fullName = req.user.displayName;
-  const profilePic = req.user._json.picture;
+  const { displayName, _json } = req.user;
+  const profilePic = _json?.picture || "";
 
   res.send(`
-    <h1>Welcome, ${fullName} !</h1>
-    <h2>Email ${req.user._json.email} </h2>
-    <img src="${profilePic}" alt="Profile Picture">
+    <h1>Welcome, ${displayName}!</h1>
+    <h2>Email: ${_json?.email || "Not available"}</h2>
+    ${profilePic ? `<img src="${profilePic}" alt="Profile Picture">` : ""}
   `);
 });
 
 app.listen(PORT, () => {
-  console.log(`Server started at http://localhost:${PORT}`);
+  console.log(`🚀 Server started at http://localhost:${PORT}`);
 });
