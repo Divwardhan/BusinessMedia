@@ -1,21 +1,56 @@
 import { Router } from "express";
-import { companyTokenGenerate } from "../middlewares/middleware.company.js";
 import pool from "../db/database_connection.js";
+import { companyTokenGenerate } from "../middlewares/middleware.company.js";
 
 const companyInfoRoutes = Router();
 
-// Get company info by company name
-companyInfoRoutes.get("/info/:cname", async (req, res) => {
+companyInfoRoutes.post("/create_info", companyTokenGenerate, async (req, res) => {
     try {
-        const cname = req.params.cname;
-        if (!cname) return res.status(400).json({ message: "Company name is required" });
+        const companyId = req.userId;
+        if (!companyId) {
+            return res.status(401).json({ message: "Unauthorized: Please login" });
+        }
+
+        const { companyname, bio, weburl, phonenumber, email, genre, state, city } = req.body;
+
+        if (!companyname || !email) {
+            return res.status(400).json({ message: "Company name and email are required" });
+        }
 
         const query = `
-            SELECT cname, description, type, profile_pic_url, cover_pic_url, followers_count, posts_count
-            FROM company_info 
-            WHERE cname = $1
+            INSERT INTO c_info (companyid, companyname, bio, weburl, phonenumber, email, genre, state, city)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            ON CONFLICT (companyid) 
+            DO UPDATE SET 
+                companyname = EXCLUDED.companyname,
+                bio = EXCLUDED.bio,
+                weburl = EXCLUDED.weburl,
+                phonenumber = EXCLUDED.phonenumber,
+                email = EXCLUDED.email,
+                genre = EXCLUDED.genre,
+                state = EXCLUDED.state,
+                city = EXCLUDED.city;
         `;
-        const values = [cname];
+        const values = [companyId, companyname, bio, weburl, phonenumber, email, genre, state, city];
+
+        await pool.query(query, values);
+        res.status(201).json({ message: "Company info created/updated successfully" });
+    } catch (err) {
+        console.error("Error creating/updating company info:", err);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+companyInfoRoutes.get("/get_info/:companyId", async (req, res) => {
+    try {
+        const companyId = req.params.companyId;
+
+        if (!companyId) {
+            return res.status(400).json({ message: "Company ID is required" });
+        }
+
+        const query = `SELECT companyid, companyname, bio, weburl, phonenumber, email, genre, state, city FROM c_info WHERE companyid = $1`;
+        const values = [companyId];
 
         const result = await pool.query(query, values);
 
@@ -23,61 +58,31 @@ companyInfoRoutes.get("/info/:cname", async (req, res) => {
             return res.status(404).json({ message: "Company info not found" });
         }
 
-        res.status(200).json({ info: result.rows[0] });
+        res.status(200).json({ companyInfo: result.rows[0] });
     } catch (err) {
         console.error("Error fetching company info:", err);
         res.status(500).json({ message: "Internal server error" });
     }
 });
 
-// Create or Add company info
-companyInfoRoutes.post("/info/create", companyTokenGenerate, async (req, res) => {
+companyInfoRoutes.put("/edit_info", companyTokenGenerate, async (req, res) => {
     try {
         const companyId = req.userId;
-        if (!companyId) return res.status(401).json({ message: "Unauthorized: Please login" });
-
-        const { cname, description, type, profile_pic_url, cover_pic_url } = req.body;
-        if (!cname || !description) {
-            return res.status(400).json({ message: "Company name and description are required" });
+        if (!companyId) {
+            return res.status(401).json({ message: "Unauthorized: Please login" });
         }
 
-        const query = `
-            INSERT INTO company_info (companyid, cname, description, type, profile_pic_url, cover_pic_url, followers_count, posts_count) 
-            VALUES ($1, $2, $3, $4, $5, $6, 0, 0)
-        `;
-        const values = [companyId, cname, description, type || null, profile_pic_url || null, cover_pic_url || null];
-
-        await pool.query(query, values);
-
-        res.status(201).json({ message: "Company info created successfully" });
-    } catch (err) {
-        console.error("Error creating company info:", err);
-        res.status(500).json({ message: "Internal server error" });
-    }
-});
-
-// Edit company info
-companyInfoRoutes.put("/info/edit", companyTokenGenerate, async (req, res) => {
-    try {
-        const companyId = req.userId;
-        if (!companyId) return res.status(401).json({ message: "Unauthorized: Please login" });
-
-        const { cname, description, type, profile_pic_url, cover_pic_url } = req.body;
-        if (!cname) return res.status(400).json({ message: "Company name is required" });
+        const { companyname, bio, weburl, phonenumber, email, genre, state, city } = req.body;
 
         const query = `
-            UPDATE company_info 
-            SET 
-                description = COALESCE($1, description),
-                type = COALESCE($2, type),
-                profile_pic_url = COALESCE($3, profile_pic_url),
-                cover_pic_url = COALESCE($4, cover_pic_url)
-            WHERE cname = $5 AND companyid = $6
+            UPDATE c_info
+            SET companyname = $1, bio = $2, weburl = $3, phonenumber = $4, 
+                email = $5, genre = $6, state = $7, city = $8
+            WHERE companyid = $9
         `;
-        const values = [description || null, type || null, profile_pic_url || null, cover_pic_url || null, cname, companyId];
+        const values = [companyname, bio, weburl, phonenumber, email, genre, state, city, companyId];
 
         const result = await pool.query(query, values);
-
         if (result.rowCount === 0) {
             return res.status(404).json({ message: "Company info not found" });
         }
@@ -89,20 +94,17 @@ companyInfoRoutes.put("/info/edit", companyTokenGenerate, async (req, res) => {
     }
 });
 
-// Delete company info
-companyInfoRoutes.delete("/info/delete", companyTokenGenerate, async (req, res) => {
+companyInfoRoutes.delete("/delete_info", companyTokenGenerate, async (req, res) => {
     try {
         const companyId = req.userId;
-        if (!companyId) return res.status(401).json({ message: "Unauthorized: Please login" });
+        if (!companyId) {
+            return res.status(401).json({ message: "Unauthorized: Please login" });
+        }
 
-        const { cname } = req.body;
-        if (!cname) return res.status(400).json({ message: "Company name is required" });
-
-        const query = `DELETE FROM company_info WHERE cname = $1 AND companyid = $2`;
-        const values = [cname, companyId];
+        const query = `DELETE FROM c_info WHERE companyid = $1`;
+        const values = [companyId];
 
         const result = await pool.query(query, values);
-
         if (result.rowCount === 0) {
             return res.status(404).json({ message: "Company info not found" });
         }
