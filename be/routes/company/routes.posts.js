@@ -1,17 +1,17 @@
 import { Router } from "express";
-import { companyTokenGenerate } from "../middlewares/middleware.company.js";
-import pool from "../db/database_connection.js";
+import { companyTokenGenerate } from "../../middlewares/middleware.company.js";
+import pool from "../../db/database_connection.js";
 
-const companyRoutes = Router()
+const postRoutes = Router()
 
-companyRoutes.get("/test" , companyTokenGenerate , (req, res)=>{
+postRoutes.get("/test" , companyTokenGenerate , (req, res)=>{
     res.json({
         msg:"hi"
     })
 })
 
 
-companyRoutes.post("/create_post", companyTokenGenerate, async (req, res) => {
+postRoutes.post("/create_post", companyTokenGenerate, async (req, res) => {
     try {
         const userId = req.userId;
         if (!userId) {
@@ -34,7 +34,7 @@ companyRoutes.post("/create_post", companyTokenGenerate, async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 });
-companyRoutes.get("/getposts/:cname", async (req, res) => {
+postRoutes.get("/getposts/:cname", async (req, res) => {
     try {
         const cname = req.params.cname;
 
@@ -90,7 +90,7 @@ companyRoutes.get("/getposts/:cname", async (req, res) => {
     }
 });
 
-companyRoutes.get("/getpost/:id", async (req, res) => {
+postRoutes.get("/getpost/:id", async (req, res) => {
     try {
         const postId = req.params.id;
 
@@ -129,7 +129,7 @@ companyRoutes.get("/getpost/:id", async (req, res) => {
     }
 });
 
-companyRoutes.get("/like_post/:id", companyTokenGenerate, async (req, res) => {
+postRoutes.get("/like_post/:id", companyTokenGenerate, async (req, res) => {
     try {
         const postId = req.params.id;
         const companyId = req.userId;
@@ -165,5 +165,77 @@ companyRoutes.get("/like_post/:id", companyTokenGenerate, async (req, res) => {
     }
 });
 
+postRoutes.delete("/unlike_post/:id", companyTokenGenerate, async (req, res) => {
+    try {
+        const postId = req.params.id;
+        const companyId = req.userId;
 
-export default companyRoutes;
+        if (!postId) {
+            return res.status(400).json({ message: "Post ID is required" });
+        }
+
+        
+        const checkQuery = `SELECT * FROM post_likes WHERE postid = $1 AND companyid = $2`;
+        const checkResult = await pool.query(checkQuery, [postId, companyId]);
+
+        if (checkResult.rows.length === 0) {
+            return res.status(400).json({ message: "You haven't liked this post" });
+        }
+
+        
+        const deleteQuery = `DELETE FROM post_likes WHERE postid = $1 AND companyid = $2`;
+        await pool.query(deleteQuery, [postId, companyId]);
+
+        
+        const updateQuery = `
+            UPDATE posts SET boost = (
+                SELECT COUNT(*) FROM post_likes WHERE postid = $1
+            ) WHERE postid = $1
+        `;
+        await pool.query(updateQuery, [postId]);
+
+        res.status(200).json({ message: "Post unliked successfully" });
+    } catch (err) {
+        console.error("Error unliking post:", err);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+postRoutes.delete("/delete_post/:id", companyTokenGenerate, async (req, res) => {
+    try {
+        const postId = req.params.id;
+        const companyId = req.userId;
+
+        if (!postId) {
+            return res.status(400).json({ message: "Post ID is required" });
+        }
+
+        const checkQuery = `SELECT * FROM posts WHERE postid = $1 AND companyid = $2`;
+        const checkResult = await pool.query(checkQuery, [postId, companyId]);
+
+        if (checkResult.rows.length === 0) {
+            return res.status(403).json({ message: "Post not found or unauthorized" });
+        }
+
+        await pool.query("BEGIN");
+
+        const deleteLikesQuery = `DELETE FROM post_likes WHERE postid = $1`;
+        await pool.query(deleteLikesQuery, [postId]);
+
+        const deletePostQuery = `DELETE FROM posts WHERE postid = $1`;
+        await pool.query(deletePostQuery, [postId]);
+
+        await pool.query("COMMIT");
+
+        res.status(200).json({ message: "Post deleted successfully" });
+    } catch (err) {
+        await pool.query("ROLLBACK"); 
+        console.error("Error deleting post:", err);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+
+
+
+export default postRoutes;
