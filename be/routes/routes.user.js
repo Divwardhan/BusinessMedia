@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import pool from "../db/database_connection.js";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
-import path,{dirname} from "path";
+import path , {dirname} from "path";
 
 
 
@@ -130,6 +130,8 @@ router.get("/profile", async (req, res) => {
     res.status(401).json({ error: "Invalid token or unauthorized" });
   }
 });
+
+
 
 // ✅ Logout User
 router.post("/logout", (req, res) => {

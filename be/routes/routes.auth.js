@@ -11,7 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
-const SECRET_KEY="Adityakurani"
+const SECRET_KEY=process.env.JWT_SECRET_KEY || "AdityaKurani"
 
 
 
@@ -34,11 +34,18 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ error: "User already exists" });
     }
 
-    const query = `INSERT INTO credential (cname, email, password) VALUES ($1, $2, $3) RETURNING *;`;
-    const values = [username, email, password];
+    var query = `INSERT INTO credential (cname, email, password) VALUES ($1, $2, $3) RETURNING *;`;
+    var values = [username, email, password];
 
-    const result = await pool.query(query, values);
-    res.status(201).json({ message: "User created successfully", user: result.rows[0] });
+    const result1 = await pool.query(query, values);
+
+    query = `INSERT INTO accesscreds (companyid , cname) VALUES ($1 , $2) RETURNING *;`
+    values = [result1.rows[0].companyid , result1.rows[0].cname]
+
+    const result2 = await pool.query(query,values)
+
+    
+    res.status(201).json({ message: "User created successfully", user: result1.rows[0]  , accessCreds : result2.rows[0] });
 
   } catch (err) {
     console.error("Error inserting user:", err);
@@ -50,14 +57,14 @@ router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ error: "Username and password are required" });
+    return res.status(400).json({ error: "Email and password are required" });
   }
 
   try {
-    const query = "SELECT * FROM users WHERE email = $1";
+    const query = "SELECT * FROM credential WHERE email = $1";
     const result = await pool.query(query, [email]);
 
-    if (result.rows.length === 0) {
+    if (result.rows.length === 0){
       return res.status(404).json({ error: "User not found" });
     }
 
@@ -67,7 +74,7 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ error: "Invalid password" });
     }
 
-    const token = jwt.sign({ name: user.name, email: user.email }, SECRET_KEY, { expiresIn: "3h" });
+    const token = jwt.sign({ id: user.companyid }, SECRET_KEY, { expiresIn: "3h" });
 
     res.cookie("token", token, { httpOnly: true, secure: true, sameSite: "strict" });
     return res.json({ message: "User logged in successfully", token });

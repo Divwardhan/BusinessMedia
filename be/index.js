@@ -8,6 +8,7 @@ import path from "path";
 import UserRoutes from './routes/routes.user.js'
 import GoogleAuthRoutes from './routes/auth.google.js'
 import session from "express-session";
+import companyRoutes from "./routes/routes.company.js";
 import passport from "passport";
 import cors from 'cors'
 
@@ -25,10 +26,9 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-const SECRET_KEY="Adityakurani"
 app.use(
   session({
-    secret: process.env.SECRET_KEY || "Adityakurani",
+    secret: process.env.JWT_SECRET_KEY || "Adityakurani",
     resave: false,
     saveUninitialized: true,
   })
@@ -58,7 +58,8 @@ app.get("/test-db", async (req, res) => {
 });
 
 app.use("/auth/google",GoogleAuthRoutes)
-app.use('/user',UserRoutes)
+app.use('/user',UserRoutes);
+app.use('/company',companyRoutes)
 app.use("/auth", authRoutes); 
 app.get("/google/profile", (req, res) => {
   if (!req.user) {
