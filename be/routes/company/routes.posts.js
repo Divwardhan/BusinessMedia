@@ -2,7 +2,6 @@ import { Router } from "express";
 import { companyTokenGenerate } from "../../middlewares/middleware.company.js";
 import pool from "../../db/database_connection.js";
 
-<<<<<<< HEAD
 const postRoutes = Router();
 
 postRoutes.get("/test", companyTokenGenerate, (req, res) => {
@@ -57,61 +56,6 @@ postRoutes.get("/getposts/:cname", async (req, res) => {
 
     // Fetch posts along with like count
     const query2 = `
-=======
-const postRoutes = Router()
-
-postRoutes.get("/test" , companyTokenGenerate , (req, res)=>{
-    res.json({
-        msg:"hi"
-    })
-})
-
-
-postRoutes.post("/create_post", companyTokenGenerate, async (req, res) => {
-    try {
-        const userId = req.userId;
-        if (!userId) {
-            return res.status(400).json({ message: "Please login to create a post" });
-        }
-
-        const { mediaUrl, post_description } = req.body;
-        if (!mediaUrl || !post_description) {
-            return res.status(400).json({ message: "Media URL and post description are required" });
-        }
-
-        const query = `INSERT INTO posts (companyid, mediaurl, post_description, posttime) VALUES ($1, $2, $3, NOW())`;
-        const values = [userId, mediaUrl, post_description];
-
-        await pool.query(query, values);
-
-        res.status(201).json({ message: "Post created successfully" });
-    } catch (err) {
-        console.error("Error creating post:", err);
-        res.status(500).json({ message: "Internal server error" });
-    }
-});
-postRoutes.get("/getposts/:cname", async (req, res) => {
-    try {
-        const cname = req.params.cname;
-
-        if (!cname) {
-            return res.status(400).json({ message: "Company name is required" });
-        }
-
-        const query1 = `SELECT companyid FROM accesscreds WHERE cname = $1`;
-        const values1 = [cname];
-
-        const result1 = await pool.query(query1, values1);
-
-        if (result1.rows.length === 0 || !result1.rows[0].companyid) {
-            return res.status(404).json({ message: "Company does not exist" });
-        }
-
-        const companyId = result1.rows[0].companyid;
-
-        // Fetch posts along with like count
-        const query2 = `
->>>>>>> 50d0a0b21b553779ba777e68e250051a66cb3f92
             SELECT p.*, COALESCE(pl.like_count, 0) AS boost
             FROM posts p
             LEFT JOIN (
@@ -120,7 +64,6 @@ postRoutes.get("/getposts/:cname", async (req, res) => {
             WHERE p.companyid = $1
             ORDER BY p.posttime DESC
         `;
-<<<<<<< HEAD
     const values2 = [companyId];
 
     const result2 = await pool.query(query2, values2);
@@ -162,44 +105,6 @@ postRoutes.get("/getpost/:id", async (req, res) => {
     }
 
     const query = `
-=======
-        const values2 = [companyId];
-
-        const result2 = await pool.query(query2, values2);
-
-        if (result2.rows.length === 0) {
-            return res.status(404).json({ message: "No posts found for this company" });
-        }
-
-        const posts = result2.rows.map(post => ({
-            ...post,
-            post_description: post.post_description
-                ? Buffer.from(post.post_description, 'binary').toString('utf-8')
-                : null
-        }));
-
-        // Update `boost` count in the posts table
-        for (const post of posts) {
-            await pool.query(`UPDATE posts SET boost = $1 WHERE postid = $2`, [post.boost, post.postid]);
-        }
-
-        res.status(200).json({ posts });
-    } catch (err) {
-        console.error("Error fetching posts:", err);
-        res.status(500).json({ message: "Internal server error" });
-    }
-});
-
-postRoutes.get("/getpost/:id", async (req, res) => {
-    try {
-        const postId = req.params.id;
-
-        if (!postId) {
-            return res.status(400).json({ message: "Post ID is required" });
-        }
-
-        const query = `
->>>>>>> 50d0a0b21b553779ba777e68e250051a66cb3f92
             SELECT p.*, COALESCE(pl.like_count, 0) AS boost
             FROM posts p
             LEFT JOIN (
@@ -279,7 +184,6 @@ postRoutes.get("/like_post/:id", companyTokenGenerate, async (req, res) => {
 });
 
 export default postRoutes;
-=======
         const values = [postId];
 
         const result = await pool.query(query, values);
@@ -411,6 +315,4 @@ postRoutes.delete("/delete_post/:id", companyTokenGenerate, async (req, res) => 
 
 
 
-
 export default postRoutes;
->>>>>>> 50d0a0b21b553779ba777e68e250051a66cb3f92
