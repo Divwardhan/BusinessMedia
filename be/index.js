@@ -3,26 +3,27 @@ import dotenv from "dotenv";
 import pool from "./db/database_connection.js";
 import authRoutes from "./routes/routes.auth.js";
 import { fileURLToPath } from "url";
-import cookieParser from 'cookie-parser'
 import path from "path";
-import UserRoutes from './routes/routes.user.js'
-import GoogleAuthRoutes from './routes/auth.google.js'
+
+import cookieParser from "cookie-parser";
+import UserRoutes from "./routes/routes.user.js";
+import GoogleAuthRoutes from "./routes/auth.google.js";
 import session from "express-session";
 import postRoutes from "./routes/company/routes.posts.js";
 import passport from "passport";
-import cors from 'cors'
+import cors from "cors";
+import companyInfoRoutes from "./routes/company/routes.info.js";
 
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
 const app = express();
-const corsOptions = {
-  origin : 'http://localhost:5173',
-  optionsSuccessStatus: 200
-}
-app.use(cors(corsOptions)); 
-
-
-app.use(cookieParser())
-
 const PORT = process.env.PORT || 3000;
+const corsOptions = {
+  origin: "http://localhost:5173",
+  optionsSuccessStatus: 200,
+};
+app.use(cors(corsOptions));
+
+app.use(cookieParser());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -38,12 +39,8 @@ app.use(passport.session());
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-dotenv.config({ path: path.resolve(__dirname, "../.env") });
-
-
-
 app.get("/", (req, res) => {
-  res.sendFile(path.resolve(__dirname,"index.html"))
+  res.sendFile(path.resolve(__dirname, "index.html"));
   console.log(process.env.JWT_SECRET);
 });
 
@@ -57,16 +54,17 @@ app.get("/test-db", async (req, res) => {
   }
 });
 
-app.use("/auth/google",GoogleAuthRoutes)
-app.use('/user',UserRoutes);
-app.use('/company/post',postRoutes)
-app.use("/auth", authRoutes); 
+app.use("/auth/google", GoogleAuthRoutes);
+app.use("/user", UserRoutes);
+app.use("/company/post", postRoutes);
+app.use("/info", companyInfoRoutes);
+app.use("/auth", authRoutes);
 app.get("/google/profile", (req, res) => {
   if (!req.user) {
     return res.send("Unauthorized");
   }
 
-  const fullName = req.user.displayName; 
+  const fullName = req.user.displayName;
   const profilePic = req.user._json.picture;
 
   res.send(`
