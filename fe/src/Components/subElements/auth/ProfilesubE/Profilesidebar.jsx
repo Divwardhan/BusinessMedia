@@ -1,49 +1,64 @@
-// ProfilesubE/ProfileSidebar.jsx
-import React from 'react';
+import React, { useState } from 'react';
+import { Sun, Moon } from 'lucide-react';
 
 const ProfileSidebar = ({ organization }) => {
+  const [darkMode, setDarkMode] = useState(true);
+
+  const toggleTheme = () => setDarkMode(!darkMode);
+
   return (
-    <div className="w-1/6 border-r p-4 flex flex-col space-y-6">
-      {/* Organization Logo */}
-      <div className="h-24 w-24 bg-gray-200 rounded-md flex items-center justify-center">
-        <span className="text-gray-500">Logo</span>
+    <div className={`w-1/4 h-full p-6 border-r ${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-300'}`}>
+      {/* Toggle Button */}
+      <div className="flex justify-between items-center mb-6">
+        <button
+          onClick={toggleTheme}
+          className="p-2 rounded-full bg-gray-800 text-gray-300 hover:bg-gray-700 transition"
+        >
+          {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
       </div>
-      
-      {/* Sidebar Sections with Dividers */}
-      <div className="w-full h-px bg-gray-300"></div>
-      
-      {/* Organization Industry */}
-      <div className="text-sm text-gray-700">
-        <p className="mb-1 font-medium">Industry</p>
-        <p>{organization.industry || 'Not specified'}</p>
+
+      {/* Logo */}
+      <div className="h-28 w-28 bg-gray-700 rounded-md flex items-center justify-center">
+        <span className="text-gray-400">Logo</span>
       </div>
-      
-      <div className="w-full h-px bg-gray-300"></div>
-      
-      {/* Founding Date */}
-      <div className="text-sm text-gray-700">
-        <p className="mb-1 font-medium">Founded</p>
-        <p>{organization.founded || 'Not specified'}</p>
+
+      {/* Divider */}
+      <div className="my-6 h-px bg-gray-700" />
+
+      {/* Info Sections */}
+      <div className="space-y-4">
+        <div className="text-sm">
+          <p className="text-gray-400 uppercase font-semibold mb-1">Industry</p>
+          <p className="text-gray-300">{organization.industry || 'Not specified'}</p>
+        </div>
+
+        <div className="text-sm">
+          <p className="text-gray-400 uppercase font-semibold mb-1">Founded</p>
+          <p className="text-gray-300">{organization.founded || 'Not specified'}</p>
+        </div>
+
+        <div className="text-sm">
+          <p className="text-gray-400 uppercase font-semibold mb-1">Location</p>
+          <p className="text-gray-300">{organization.location || 'Not specified'}</p>
+        </div>
+
+        <div className="text-sm">
+          <p className="text-gray-400 uppercase font-semibold mb-1">Website</p>
+          <a
+            href={organization.website || '#'}
+            className="text-blue-400 hover:underline truncate block"
+          >
+            {organization.website || 'Not specified'}
+          </a>
+        </div>
       </div>
-      
-      <div className="w-full h-px bg-gray-300"></div>
-      
-      {/* Location */}
-      <div className="text-sm text-gray-700">
-        <p className="mb-1 font-medium">Location</p>
-        <p>{organization.location || 'Not specified'}</p>
-      </div>
-      
-      <div className="w-full h-px bg-gray-300"></div>
-      
-      {/* Website */}
-      <div className="text-sm text-gray-700">
-        <p className="mb-1 font-medium">Website</p>
-        <p className="text-blue-600 truncate">{organization.website || 'Not specified'}</p>
-      </div>
-      
-      {/* Like/Follow Button */}
-      <button className="bg-purple-600 text-white px-4 py-2 rounded text-sm hover:bg-purple-700 transition">
+
+      {/* Divider */}
+      <div className="my-6 h-px bg-gray-700" />
+
+      {/* Like Button */}
+      <button className="w-full py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-500 transition">
         Like
       </button>
     </div>

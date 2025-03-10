@@ -8,7 +8,7 @@ import path from "path";
 import UserRoutes from './routes/routes.user.js'
 import GoogleAuthRoutes from './routes/auth.google.js'
 import session from "express-session";
-import companyRoutes from "./routes/routes.company.js";
+import postRoutes from "./routes/company/routes.posts.js";
 import passport from "passport";
 import cors from 'cors'
 
@@ -59,7 +59,7 @@ app.get("/test-db", async (req, res) => {
 
 app.use("/auth/google",GoogleAuthRoutes)
 app.use('/user',UserRoutes);
-app.use('/company',companyRoutes)
+app.use('/company/post',postRoutes)
 app.use("/auth", authRoutes); 
 app.get("/google/profile", (req, res) => {
   if (!req.user) {

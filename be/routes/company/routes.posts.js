@@ -2,16 +2,16 @@ import { Router } from "express";
 import { companyTokenGenerate } from "../middlewares/middleware.company.js";
 import pool from "../db/database_connection.js";
 
-const companyRoutes = Router()
+const postRoutes = Router()
 
-companyRoutes.get("/test" , companyTokenGenerate , (req, res)=>{
+postRoutes.get("/test" , companyTokenGenerate , (req, res)=>{
     res.json({
         msg:"hi"
     })
 })
 
 
-companyRoutes.post("/create_post", companyTokenGenerate, async (req, res) => {
+postRoutes.post("/create_post", companyTokenGenerate, async (req, res) => {
     try {
         const userId = req.userId;
         if (!userId) {
@@ -34,7 +34,7 @@ companyRoutes.post("/create_post", companyTokenGenerate, async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 });
-companyRoutes.get("/getposts/:cname", async (req, res) => {
+postRoutes.get("/getposts/:cname", async (req, res) => {
     try {
         const cname = req.params.cname;
 
@@ -90,7 +90,7 @@ companyRoutes.get("/getposts/:cname", async (req, res) => {
     }
 });
 
-companyRoutes.get("/getpost/:id", async (req, res) => {
+postRoutes.get("/getpost/:id", async (req, res) => {
     try {
         const postId = req.params.id;
 
@@ -129,7 +129,7 @@ companyRoutes.get("/getpost/:id", async (req, res) => {
     }
 });
 
-companyRoutes.get("/like_post/:id", companyTokenGenerate, async (req, res) => {
+postRoutes.get("/like_post/:id", companyTokenGenerate, async (req, res) => {
     try {
         const postId = req.params.id;
         const companyId = req.userId;
@@ -166,4 +166,4 @@ companyRoutes.get("/like_post/:id", companyTokenGenerate, async (req, res) => {
 });
 
 
-export default companyRoutes;
+export default postRoutes;
