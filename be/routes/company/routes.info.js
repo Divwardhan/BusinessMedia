@@ -1,5 +1,9 @@
 import { Router } from "express";
+<<<<<<< HEAD
 import pool from "../../db/database_connection.js";
+=======
+import pool from "../db/database_connection.js";
+>>>>>>> 50d0a0b21b553779ba777e68e250051a66cb3f92
 import { companyTokenGenerate } from "../../middlewares/middleware.company.js";
 
 const companyInfoRoutes = Router();
@@ -158,4 +162,8 @@ companyInfoRoutes.delete(
   }
 );
 
+<<<<<<< HEAD
 export default companyInfoRoutes;
+=======
+export default companyInfoRoutes;
+>>>>>>> 50d0a0b21b553779ba777e68e250051a66cb3f92

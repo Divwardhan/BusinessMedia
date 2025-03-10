@@ -54,11 +54,10 @@ app.get("/test-db", async (req, res) => {
   }
 });
 
-app.use("/auth/google", GoogleAuthRoutes);
-app.use("/user", UserRoutes);
-app.use("/company/post", postRoutes);
-app.use("/info", companyInfoRoutes);
-app.use("/auth", authRoutes);
+app.use("/auth/google",GoogleAuthRoutes)
+app.use('/user',UserRoutes);
+app.use('/company',companyRoutes)
+app.use("/auth", authRoutes); 
 app.get("/google/profile", (req, res) => {
   if (!req.user) {
     return res.send("Unauthorized");
