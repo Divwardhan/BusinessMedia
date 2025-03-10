@@ -1,5 +1,5 @@
 import { Router } from "express";
-import pool from "../db/database_connection.js";
+import pool from "../../db/database_connection.js";
 import { companyTokenGenerate } from "../../middlewares/middleware.company.js";
 
 const companyInfoRoutes = Router();
