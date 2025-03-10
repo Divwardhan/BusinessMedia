@@ -1,16 +1,21 @@
 import pkg from 'pg';
 import dotenv from 'dotenv';
+import {fileURLToPath} from "url";
+import path ,{dirname} from 'path';
 
-dotenv.config();  
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, "../../.env") });
+
 
 const { Pool } = pkg;
 
 const pool = new Pool({
-  user: "postgres",       
-  host: "localhost",       
-  database: "newdb1",   
-  password: String("k6pnog6g5y"),  
-  port: 5433,     
+  user: process.env.DB_USER,       
+  host: process.env.DB_HOST,       
+  database: process.env.DB_DBNAME,   
+  password: String(process.env.DB_PASSWORD),  
+  port:process.env.DB_PORT,     
 });
 
 export default pool;

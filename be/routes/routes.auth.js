@@ -3,14 +3,20 @@ import jwt from "jsonwebtoken";
 import pool from "../db/database_connection.js";
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
+import dotenv from 'dotenv'
 
 const router = express.Router();
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 const SECRET_KEY="Adityakurani"
 
+
+
 router.get("/login", (req, res) => {
+  console.log(process.env.JWT_SECRET)
   res.sendFile(path.resolve(__dirname, "../index.html"));
 });
 
@@ -22,13 +28,13 @@ router.post("/register", async (req, res) => {
   }
 
   try {
-    const checkUserQuery = "SELECT * FROM users WHERE email = $1";
+    const checkUserQuery = "SELECT * FROM credential WHERE email = $1";
     const existingUser = await pool.query(checkUserQuery, [email]);
     if (existingUser.rows.length > 0) {
       return res.status(400).json({ error: "User already exists" });
     }
 
-    const query = `INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *;`;
+    const query = `INSERT INTO credential (cname, email, password) VALUES ($1, $2, $3) RETURNING *;`;
     const values = [username, email, password];
 
     const result = await pool.query(query, values);

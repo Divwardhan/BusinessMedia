@@ -11,8 +11,6 @@ import session from "express-session";
 import passport from "passport";
 import cors from 'cors'
 
-dotenv.config();
-
 const app = express();
 const corsOptions = {
   origin : 'http://localhost:5173',
@@ -40,9 +38,13 @@ app.use(passport.session());
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
+
+
 
 app.get("/", (req, res) => {
   res.sendFile(path.resolve(__dirname,"index.html"))
+  console.log(process.env.JWT_SECRET);
 });
 
 app.get("/test-db", async (req, res) => {

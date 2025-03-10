@@ -10,14 +10,7 @@ function App() {
         <Routes>
           <Route path="/organization/:orgId" element={<Profile />} />
           <Route path="/homepage" element={<></>} />
-          <Route
-            path="/auth"
-            element={
-              <>
-                <Authentication />
-              </>
-            }
-          />
+          <Route path="/auth" element={<><Authentication /></>}/>
           <Route path="/broadcasting_to_own_organisation" element={<></>} />
           <Route path="/dms_to_other_organisations" element={<></>} />
           <Route path="/explore" element={<></>} />

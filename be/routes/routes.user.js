@@ -2,15 +2,22 @@ import express from "express";
 import jwt from "jsonwebtoken";
 import pool from "../db/database_connection.js";
 import dotenv from "dotenv";
+import { fileURLToPath } from "url";
+import path,{dirname} from "path";
 
-dotenv.config();
+
 
 const router = express.Router();
 const SECRET_KEY = process.env.SECRET_KEY;
 
-// ✅ Test route
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.resolve(__dirname, "../../.env") });
+
 router.get("/test", async (req, res) => {
   try {
+    console.log(process.env.JWT_SECRET)
     const result = await pool.query("SELECT NOW()");
     res.json({ status: "Connected", time: result.rows[0].now });
   } catch (err) {
