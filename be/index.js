@@ -1,6 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
-import pool from "./db/database_connection.js";
+import pool from "../be/db/database_connection.js";
 import authRoutes from "./routes/routes.auth.js";
 import { fileURLToPath } from "url";
 import path from "path";

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import pool from "../db/database_connection.js";
+import pool from "../../db/database_connection.js";
 import { companyTokenGenerate } from "../../middlewares/middleware.company.js";
 
 const companyInfoRoutes = Router();
@@ -68,16 +68,20 @@ companyInfoRoutes.post(
   }
 );
 
-companyInfoRoutes.get("/get_info/:companyId", async (req, res) => {
+companyInfoRoutes.get("/get_info/:companyname", async (req, res) => {
   try {
-    const companyId = req.params.companyId;
+    const companyname = decodeURIComponent(req.params.companyname);
 
-    if (!companyId) {
-      return res.status(400).json({ message: "Company ID is required" });
+    if (!companyname) {
+      return res.status(400).json({ message: "Company name is required" });
     }
 
-    const query = `SELECT companyid, companyname, bio, weburl, phonenumber, email, genre, state, city FROM c_info WHERE companyid = $1`;
-    const values = [companyId];
+    const query = `
+      SELECT companyid, companyname, bio, weburl, phonenumber, email, genre, state, city 
+      FROM c_info 
+      WHERE companyname ILIKE $1
+    `;
+    const values = [companyname];
 
     const result = await pool.query(query, values);
 
