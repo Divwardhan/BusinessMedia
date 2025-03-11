@@ -12,7 +12,7 @@ postRoutes.get("/test" , companyTokenGenerate , (req, res)=>{
 
 
 postRoutes.post("/create_post", companyTokenGenerate, async (req, res) => {
-    try {
+    try {   
         const userId = req.userId;
         if (!userId) {
             return res.status(400).json({ message: "Please login to create a post" });

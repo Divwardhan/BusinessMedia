@@ -8,10 +8,12 @@ import cookieParser from "cookie-parser";
 import UserRoutes from "./routes/routes.user.js";
 import GoogleAuthRoutes from "./routes/auth.google.js";
 import session from "express-session";
-import companyRoutes from "./routes/company/routes.posts.js"; // Fixed import
+import storyRoutes from "./routes/company/routes.story.js";
 import passport from "passport";
 import cors from "cors";
 import companyInfoRoutes from "./routes/company/routes.info.js";
+import postRoutes from "./routes/company/routes.posts.js";
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -57,8 +59,9 @@ app.get("/test-db", async (req, res) => {
 
 app.use("/auth/google", GoogleAuthRoutes);
 app.use("/user", UserRoutes);
-app.use("/company", companyRoutes); // Fixed route assignment
+app.use("/company/post", postRoutes);
 app.use("/company/info", companyInfoRoutes);
+app.use("/company/story",storyRoutes);
 app.use("/auth", authRoutes);
 
 app.get("/google/profile", (req, res) => {
