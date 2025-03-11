@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="container mt-4">
+    <h2 class="text-center">User Authentication & Management</h2>
+
+    <!-- 🔹 Register Form -->
+    <h4>Register</h4>
+    <h1>frf</h1>
+    <form action="/auth/register" method="POST">
+        <input type="text" class="form-control mb-2" name="name" placeholder="Full Name" required>
+        <input type="email" class="form-control mb-2" name="email" placeholder="Email" required>
+        <input type="password" class="form-control mb-2" name="password" placeholder="Password" required>
+        <button type="submit" class="btn btn-success">Register</button>
+    </form>
+
+    <hr>
+
+    <!-- 🔹 Login Form -->
+    <h4>Login</h4>
+    <form action="/auth/login" method="POST">
+        <input type="text" class="form-control mb-2" name="username" placeholder="Full Name" required>
+        <input type="password" class="form-control mb-2" name="password" placeholder="Password" required>
+        <button type="submit" class="btn btn-primary">Login</button>
+    </form>
+
+    <br>
+
+    <!-- 🔹 Google OAuth Login -->
+    <a href="/auth/google/login" class="btn btn-danger">Login with Google</a>
+
+    <hr>
+
+    <!-- 🔹 Update User -->
+    <h4>Update User</h4>
+    <form action="/user/update/5" method="POST">
+        <input type="text" class="form-control mb-2" name="name" placeholder="New Name" required>
+        <input type="email" class="form-control mb-2" name="email" placeholder="New Email" required>
+        <input type="password" class="form-control mb-2" name="password" placeholder="New Password" required>
+        <button type="submit" class="btn btn-warning">Update User</button>
+    </form>
+
+    <hr>
+
+    <!-- 🔹 Delete User from the id u give in the id param -->
+    <h4>Delete User</h4>
+    <form action="/user/delete/2" method="POST">
+        <button type="submit" class="btn btn-danger">Delete User</button>
+    </form>
+
+    <hr>
+
+    <!-- 🔹 Search User -->
+    <h4>Search User</h4>
+    <form action="/user/search" method="POST">
+        <input type="text" class="form-control mb-2" name="name" placeholder="Search by Name" required>
+        <button type="submit" class="btn btn-info">Search</button>
+    </form>
+
+    <hr>
+
+    <!-- 🔹 Get Profile -->
+    <h4>View Profile</h4>
+    <a href="/user/profile" class="btn btn-dark">Get Profile</a>
+
+    <hr>
+
+    <!-- 🔹 Logout -->
+    <h4>Logout</h4>
+    <a href="/user/logout" class="btn btn-secondary">Logout</a>
+
+</body>
+</html>
