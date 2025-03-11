@@ -8,7 +8,7 @@ import cookieParser from "cookie-parser";
 import UserRoutes from "./routes/routes.user.js";
 import GoogleAuthRoutes from "./routes/auth.google.js";
 import session from "express-session";
-import companyRoutes from "./routes/company/routes.posts.js"; // Fixed import
+import companyRoutes from "./routes/company/routes.posts.js";
 import passport from "passport";
 import cors from "cors";
 import companyInfoRoutes from "./routes/company/routes.info.js";
@@ -19,7 +19,7 @@ import storyRoutes from "./routes/company/routes.story.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-dotenv.config({ path: path.join(__dirname, "../.env") }); // Fixed dotenv path
+dotenv.config({ path: path.join(__dirname, "../.env") }); 
 
 const app = express();
 const PORT = process.env.PORT || 3000;
