@@ -3,41 +3,40 @@ import jwt from "jsonwebtoken";
 import pool from "../db/database_connection.js";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
-import path , {dirname} from "path";
+import path from "path";
 
-
-
-const router = express.Router();
-const SECRET_KEY = process.env.SECRET_KEY;
-
+const UserRoutes = express.Router();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
+const SECRET_KEY = process.env.JWT_SECRET_KEY;
 
-router.get("/test", async (req, res) => {
+UserRoutes.post("/create", async (req, res) => {
+  const { username, email, password, bio, profile_pic } = req.body;
+
+  if (!username || !email || !password) {
+    return res.status(400).json({ error: "Username, email, and password are required" });
+  }
+
   try {
-    console.log(process.env.JWT_SECRET)
-    const result = await pool.query("SELECT NOW()");
-    res.json({ status: "Connected", time: result.rows[0].now });
+    const query = `INSERT INTO users (username, email, password, bio, profile_pic) VALUES ($1, $2, $3, $4, $5) RETURNING *`;
+    const values = [username, email, password, bio || null, profile_pic || null];
+    const result = await pool.query(query, values);
+    res.json({ message: "User created successfully", user: result.rows[0] });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ status: "Failed to connect", error: err.message });
+    console.error("Error creating user:", err);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
-// ✅ Update User
-router.post("/update/:id", async (req, res) => {
+UserRoutes.put("/update/:id", async (req, res) => {
   const id = parseInt(req.params.id);
-  const { name, email, password } = req.body;
-
-  if (!name || !email || !password) {
-    return res.status(400).json({ error: "All fields are required" });
-  }
+  const { username, email, password, bio, profile_pic } = req.body;
 
   try {
-    const query = `UPDATE users SET name=$1, email=$2, password=$3 WHERE id=$4 RETURNING *`;
-    const values = [name, email, password, id];
+    const query = `UPDATE users SET username=$1, email=$2, password=$3, bio=$4, profile_pic=$5, updated_at=NOW() WHERE id=$6 RETURNING *`;
+    const values = [username, email, password, bio, profile_pic, id];
     const result = await pool.query(query, values);
 
     if (result.rows.length === 0) {
@@ -51,8 +50,7 @@ router.post("/update/:id", async (req, res) => {
   }
 });
 
-// ✅ Delete User
-router.delete("/delete/:id", async (req, res) => {
+UserRoutes.delete("/delete/:id", async (req, res) => {
   const id = parseInt(req.params.id);
 
   try {
@@ -70,72 +68,82 @@ router.delete("/delete/:id", async (req, res) => {
   }
 });
 
-// ✅ Search User by Name
-router.post("/search", async (req, res) => {
-  const { name } = req.body;
-
-  if (!name) {
-    return res.status(400).json({ error: "Name is required" });
-  }
+UserRoutes.post("/follow/:cname", async (req, res) => {
+  const { user_id } = req.body;
+  const cname = req.params.cname;
 
   try {
-    const query = "SELECT * FROM users WHERE name ILIKE $1";
-    const result = await pool.query(query, [`%${name}%`]); // Partial match
+    const companyid = await pool.query(`SELECT companyid from accesscreds WHERE cname =$1` , [cname])
+    const query = `INSERT INTO followers (user_id, company_id) VALUES ($1, $2) RETURNING *`;
+    const result = await pool.query(query, [user_id, companyid.rows[0].companyid]);
+    res.json({ message: "Successfully followed the company", follow: result.rows[0] });
+  } catch (err) {
+    console.error("Error following company:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+UserRoutes.post("/review/:cname", async (req, res) => {
+  const { user_id, review, rating } = req.body;
+  const cname = req.params.cname;
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "User not found" });
+  try {
+    const companyResult = await pool.query(`SELECT companyid FROM accesscreds WHERE cname = $1`, [cname]);
+
+    if (companyResult.rows.length === 0) {
+      return res.status(400).json({ error: "Company not found in accesscreds" });
     }
 
-    res.json({ users: result.rows });
+    const company_id = companyResult.rows[0].companyid;
+
+    const existingReview = await pool.query(
+      `SELECT id FROM user_reviews WHERE user_id = $1 AND company_id = $2`,
+      [user_id, company_id]
+    );
+
+    let result;
+    if (existingReview.rows.length > 0) {
+      const review_id = existingReview.rows[0].id;
+      const updateQuery = `
+        UPDATE user_reviews 
+        SET review = $1, rating = $2, created_at = CURRENT_TIMESTAMP
+        WHERE id = $3 RETURNING *`;
+      result = await pool.query(updateQuery, [review, rating, review_id]);
+    } else {
+      const insertQuery = `
+        INSERT INTO user_reviews (user_id, company_id, review, rating) 
+        VALUES ($1, $2, $3, $4) RETURNING *`;
+      result = await pool.query(insertQuery, [user_id, company_id, review, rating]);
+    }
+
+    res.json({ message: "Review saved successfully", review: result.rows[0] });
   } catch (err) {
-    console.error("Error finding user:", err);
+    console.error("Error adding/updating review:", err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
-// ✅ Get All Users
-router.get("/all-users", async (req, res) => {
-  try {
-    const query = "SELECT * FROM users";
-    const result = await pool.query(query);
+UserRoutes.post("/request-role/:cname", async (req, res) => {
+  const { user_id, role } = req.body;
+  const cname = req.params.cname;
 
-    res.json({ users: result.rows });
+  const companyid = await pool.query(`SELECT companyid FROM accesscreds WHERE cname = $1` , [cname])
+
+  if (!["member"].includes(role)) {
+    return res.status(400).json({ error: "Invalid role." });
+  }
+  const user = await pool.query(`SELECT * FROM users WHERE id = $1` , [user_id])
+  if(!user){
+    return res.status(400).json({ error :"The user is not found . Please signup to continue"})
+  }
+
+  try {
+    const query = `INSERT INTO user_roles (user_id, companyid, role) VALUES ($1, $2, $3) ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role RETURNING *`;
+    const result = await pool.query(query, [user_id, companyid.rows[0].companyid, role]);
+    res.json({ message: "Role request submitted", user_role: result.rows[0] });
   } catch (err) {
-    console.error("Error fetching users:", err);
+    console.error("Error requesting role:", err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
-// ✅ Get Profile (Requires Authentication)
-router.get("/profile", async (req, res) => {
-  try {
-    const token = req.cookies?.token;
-    if (!token) {
-      return res.status(401).json({ error: "Unauthorized - No token provided" });
-    }
-
-    const decoded = jwt.verify(token, SECRET_KEY);
-    const { name } = decoded;
-
-    const query = "SELECT * FROM users WHERE name = $1";
-    const result = await pool.query(query, [name]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    res.json({ user: result.rows[0] });
-  } catch (err) {
-    console.error("Error fetching profile:", err);
-    res.status(401).json({ error: "Invalid token or unauthorized" });
-  }
-});
-
-
-
-// ✅ Logout User
-router.post("/logout", (req, res) => {
-  res.clearCookie("token").json({ message: "User logged out successfully" });
-});
-
-export default router;
+export default UserRoutes;
