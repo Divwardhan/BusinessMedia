@@ -15,6 +15,8 @@ import companyInfoRoutes from "./routes/company/routes.info.js";
 import connectionRoutes from "./routes/company/routes.connections.js";
 import chatRoutes from "./routes/company/routes.chatai.js";
 import storyRoutes from "./routes/company/routes.story.js";
+import '../socket/server.js';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
