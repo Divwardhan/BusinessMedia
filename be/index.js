@@ -15,6 +15,7 @@ import companyInfoRoutes from "./routes/company/routes.info.js";
 import connectionRoutes from "./routes/company/routes.connections.js";
 import chatRoutes from "./routes/company/routes.chatai.js";
 import storyRoutes from "./routes/company/routes.story.js";
+import companyUser from "./routes/company/routes.userconnect.js";
 import '../socket/server.js';
 
 
@@ -68,6 +69,7 @@ app.use("/auth", authRoutes);
 app.use("/company/connection", connectionRoutes);
 app.use("/company/chat", chatRoutes);
 app.use("/company/story",storyRoutes)
+app.use("/company/userinfo",companyUser)
 
 app.get("/google/profile", (req, res) => {
   if (!req.user) {
